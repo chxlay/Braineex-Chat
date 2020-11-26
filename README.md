@@ -1,2 +1,2 @@
 # Braineex-Chat
-Braineex聊天系统
+Braineex聊天测试系统
