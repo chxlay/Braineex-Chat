@@ -20,7 +20,7 @@ public class ClientSearcher {
     public static ServerInfo searchServer(int timeout) {
         System.out.println("UDPSearcher Started.");
 
-        // 成功收到回送的栅栏
+        // 成功收到回送的栅栏,收到 1 次服务端回传即可成功
         CountDownLatch receiveLatch = new CountDownLatch(1);
         Listener listener = null;
         try {
@@ -35,6 +35,7 @@ public class ClientSearcher {
         if (listener == null) {
             return null;
         }
+        // 可以监听多个对应的回送，所以是一个集合
         List<ServerInfo> devices = listener.getServerAndClose();
         if (devices.size() > 0) {
             return devices.get(0);

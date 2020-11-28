@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 class ServerProvider {
+    // Provider 单例
     private static Provider PROVIDER_INSTANCE;
 
     static void start(int port) {
@@ -19,6 +20,9 @@ class ServerProvider {
         PROVIDER_INSTANCE = provider;
     }
 
+    /**
+     * 停止之前的搜索
+     */
     static void stop() {
         if (PROVIDER_INSTANCE != null) {
             PROVIDER_INSTANCE.exit();
@@ -47,7 +51,7 @@ class ServerProvider {
             System.out.println("UDPProvider Started.");
 
             try {
-                // 监听20000 端口
+                // 监听端口
                 ds = new DatagramSocket(UDPConstants.PORT_SERVER);
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
@@ -63,6 +67,8 @@ class ServerProvider {
                     int clientPort = receivePack.getPort();
                     int clientDataLen = receivePack.getLength();
                     byte[] clientData = receivePack.getData();
+                    // 接收的数据一定要有口令头，且长度大于规定的数据长度才是有效的数据
+                    // 接收到的数据一定是有口令头的,口令头之后是 我们定义的 common指令  short存储 2 字节，客户端回送端口 int类型，4个字节
                     boolean isValid = clientDataLen >= (UDPConstants.HEADER.length + 2 + 4)
                             && ByteUtils.startsWith(clientData, UDPConstants.HEADER);
 
@@ -70,12 +76,13 @@ class ServerProvider {
                             + "\tport:" + clientPort + "\tdataValid:" + isValid);
 
                     if (!isValid) {
-                        // 无效继续
+                        // 无效数据,继续下一次
                         continue;
                     }
 
                     // 解析命令与回送端口
                     int index = UDPConstants.HEADER.length;
+                    // common 命令 2 字节
                     short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
                     int responsePort = (((clientData[index++]) << 24) |
                             ((clientData[index++] & 0xff) << 16) |
